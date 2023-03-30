@@ -7,20 +7,20 @@ $INSTANCES = [
     "https://nitter.net/",
 ];
 
-if(!isset($_GET["username"])) {
+if (!isset($_GET["username"])) {
     http_response_code(400);
     return;
 }
 
 $i = 0;
 $content = null;
-while (!$content AND count($INSTANCES) > $i) {
-    $url = $INSTANCES[$i].$_GET["username"]."/rss";
+while (!$content and count($INSTANCES) > $i) {
+    $url = $INSTANCES[$i] . $_GET["username"] . "/rss";
     $content = file_get_contents($url);
     $i++;
 }
 
-if(!$content) {
+if (!$content) {
     http_response_code(404);
     return;
 }
@@ -29,6 +29,9 @@ if(!$content) {
 $xml = new SimpleXMLElement($content);
 foreach ($xml->xpath("channel/item") as $item) {
     $item->guid = explode("/", $item->guid)[5];
+    if (isset($_GET['nort']) && str_starts_with($item->title, 'RT')) {
+        unset($item[0]);
+    }
 }
 
 header("Content-type: text/xml; charset=utf-8");
